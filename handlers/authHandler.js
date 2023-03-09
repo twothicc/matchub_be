@@ -4,61 +4,59 @@ import bcrypt from "bcrypt";
 const saltRounds = 10;
 
 const saltHash = async (password) => {
-  await bcrypt
-    .genSalt(saltRounds)
-    .then((salt) => {
-      return hash(password, salt);
-    })
-    .catch((err) => {
-      console.error("failed to hash password", err);
-    });
+  const salt = await bcrypt.genSalt(saltRounds);
+  const passwordHash = await bcrypt.hash(password, salt);
+
+  return passwordHash;
 };
 
 const validateUser = async (password, hash) => {
-  await bcrypt
-    .compare(password, hash)
-    .then((res) => {
-      return res;
-    })
-    .catch((err) => {
-      console.error("failed to validate user", err);
-    });
+  const isValid = await bcrypt.compare(password, hash);
+
+  return isValid;
 };
 
 export const signup = async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const fullName = req.body.fullName;
+  const fullName = req.body.name;
 
-  const saltHashPassword = saltHash(password);
+  const saltHashPassword = await saltHash(password);
 
-  await User.create({
+  const user = await User.create({
     email: email,
     fullName: fullName,
     password: saltHashPassword,
-  })
-    .then((res) => {
-      req.session.regenerate((err) => {
-        if (err) {
-          return res.status(500).send("failed to regenerate user session");
-        }
+  });
 
-        req.session.user = {
-          id: res.id,
-          email: res.email,
-          fullName: res.fullName,
-        };
+  const userWithoutPassword = {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+  };
 
-        req.session.save((err) => {
-          if (err) {
-            return res.status(500).send("failed to save user session");
-          }
-        });
+  req.session.regenerate((err) => {
+    if (err) {
+      return res.status(500).json({
+        msg: "failed to regenerate user session",
       });
-    })
-    .catch(() => {
-      return res.status(500).send(`failed to create user ${fullName}`);
+    }
+
+    req.session.user = userWithoutPassword;
+
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({
+          msg: "failed to save user session",
+        });
+      }
+
+      return res.status(200).json({
+        msg: "signup successful",
+        data: userWithoutPassword,
+      });
     });
+  });
 };
 
 export const login = async (req, res) => {
@@ -69,31 +67,46 @@ export const login = async (req, res) => {
     where: {
       email: email,
     },
-  }).catch((err) => {
-    console.error(`failed to fetch user with email ${email}`, err);
   });
 
-  const isValid = validateUser(password, user.password);
+  const userWithoutPassword = {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+  };
+
+  const isValid = await validateUser(password, user.password);
+
+  console.log(isValid);
 
   if (!isValid) {
-    return res.status(401).send("incorrect email or password");
+    return res.status(401).json({
+      msg: "incorrect email or password",
+    });
   }
 
   req.session.regenerate((err) => {
     if (err) {
-      return res.status(500).send("failed to regenerate user session");
+      return res.status(500).json({
+        msg: "failed to regenerate user session",
+      });
     }
 
-    req.session.user = req.body.user;
+    req.session.user = userWithoutPassword;
 
     req.session.save((err) => {
       if (err) {
-        return res.status(500).send("failed to save user session");
+        return res.status(500).json({
+          msg: "failed to save user session",
+        });
       }
+
+      return res.status(200).json({
+        msg: "login successful",
+        data: userWithoutPassword,
+      });
     });
   });
-
-  return res.status(200).send("login successful");
 };
 
 export const logout = async (req, res) => {
@@ -101,15 +114,21 @@ export const logout = async (req, res) => {
 
   req.session.save((err) => {
     if (err) {
-      return res.status(500).send("failed to clear user session and save");
+      return res.status(500).json({
+        msg: "failed to clear user session and save",
+      });
     }
 
     req.session.regenerate((err) => {
       if (err) {
-        return res.status(500).send("failed to regenerate user session");
+        return res.status(500).json({
+          msg: "failed to regenerate user session",
+        });
       }
+
+      return res.status(200).json({
+        msg: "logout successful",
+      });
     });
   });
-
-  return res.status(200).send("logout successful");
 };

@@ -3,7 +3,7 @@ import { sequelize } from "../db/engine.js";
 import Club from "./club.js";
 import User from "./user.js";
 
-const UserClub = sequelize.define("clubs", {
+const UserClub = sequelize.define("userClubs", {
   user_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,

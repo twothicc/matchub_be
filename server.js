@@ -2,6 +2,7 @@ import express from "express";
 import session from "express-session";
 import mySqlSession from "express-mysql-session";
 import bodyParser from "body-parser";
+import cors from "cors";
 
 import AuthRoutes from "./routes/authRoute.js";
 import ClubRoutes from "./routes/clubRoute.js";
@@ -14,6 +15,16 @@ import UserClub from "./models/userClub.js";
 const MySQLStore = mySqlSession(session);
 
 const app = express();
+
+// CORS setup
+const corsOptions = {
+  origin: ["http://localhost:3001"],
+  methods: ["GET", "PUT", "POST", "DELETE"],
+  optionsSuccessStatus: 204,
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -36,7 +47,7 @@ app.use(
     key: "session_cookie_name",
     secret: "session_cookie_secret",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: sessionStore,
     cookie: {
       httpOnly: true,
