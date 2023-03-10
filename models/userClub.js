@@ -3,6 +3,9 @@ import { sequelize } from "../db/engine.js";
 import Club from "./club.js";
 import User from "./user.js";
 
+/**
+ * User-club relation schema
+ */
 const UserClub = sequelize.define("userClubs", {
   user_id: {
     type: DataTypes.INTEGER,

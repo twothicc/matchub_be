@@ -1,6 +1,9 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../db/engine.js";
 
+/**
+ * User schema
+ */
 const User = sequelize.define("users", {
   id: {
     type: DataTypes.INTEGER,

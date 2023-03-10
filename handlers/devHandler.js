@@ -1,6 +1,12 @@
 import { DummyClubListings } from "../data/clubListings.js";
 import Club from "../models/club.js";
 
+/**
+ * initDB controller.
+ *
+ * Initializes the DB with dummy data for development
+ * purposes.
+ */
 export const initDB = async (req, res) => {
   await Club.sync()
     .then((res) => {

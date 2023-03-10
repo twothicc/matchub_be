@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 
+// DB engine
 export const sequelize = new Sequelize("matchub", "test", "test1234.", {
   host: "localhost",
   dialect: "mysql",

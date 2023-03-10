@@ -3,6 +3,9 @@ import bcrypt from "bcrypt";
 
 const saltRounds = 10;
 
+// Salts and hashes password using bcrypt
+// Each salt will be unique even with the same password, so it is
+// necessary to use bcrypt compare to validate.
 const saltHash = async (password) => {
   const salt = await bcrypt.genSalt(saltRounds);
   const passwordHash = await bcrypt.hash(password, salt);
@@ -10,12 +13,20 @@ const saltHash = async (password) => {
   return passwordHash;
 };
 
+// Validates user using bcrypt compare
 const validateUser = async (password, hash) => {
   const isValid = await bcrypt.compare(password, hash);
 
   return isValid;
 };
 
+/**
+ * Signup Controller.
+ *
+ * Salts and hashes user password, creates
+ * a new user, then creates a login session
+ * for the new user.
+ */
 export const signup = async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -59,6 +70,16 @@ export const signup = async (req, res) => {
   });
 };
 
+/**
+ * Login controller.
+ *
+ * Validates user password and regenerates
+ * a new login session (new session record with
+ * new session ID) and adds user data to it.
+ *
+ * Session regeneration mitigates session fixation
+ * attacks using existing session IDs.
+ */
 export const login = async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -76,8 +97,6 @@ export const login = async (req, res) => {
   };
 
   const isValid = await validateUser(password, user.password);
-
-  console.log(isValid);
 
   if (!isValid) {
     return res.status(401).json({
@@ -109,6 +128,13 @@ export const login = async (req, res) => {
   });
 };
 
+/**
+ * Logout controller.
+ *
+ * Strips the existing session of user data and
+ * saves it to session store. Then regenerates
+ * a new session.
+ */
 export const logout = async (req, res) => {
   req.session.user = null;
 

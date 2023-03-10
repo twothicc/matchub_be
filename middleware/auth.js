@@ -1,3 +1,11 @@
+/**
+ * Authorization middleware.
+ *
+ * Authenticates the user by checking if the
+ * session has user data.
+ *
+ * All valid sessions will have user data.
+ */
 export const auth = async (req, res, next) => {
   console.log("middleware authenticating");
 

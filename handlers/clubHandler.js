@@ -1,8 +1,12 @@
 import Club from "../models/club.js";
 import UserClub from "../models/userClub.js";
+import { PAGE_SIZE } from "../utils/config.js";
 
-const pageSize = 5;
-
+/**
+ * getClub controller.
+ *
+ * Retrieves a single club record from store.
+ */
 export const getClub = async (req, res) => {
   const clubId = req.params.id;
 
@@ -18,9 +22,14 @@ export const getClub = async (req, res) => {
   });
 };
 
+/**
+ * getClubs controller.
+ *
+ * Retrieves a page of club records from store.
+ */
 export const getClubs = async (req, res) => {
   const page = req.params.page;
-  const offset = pageSize * page;
+  const offset = PAGE_SIZE * page;
 
   const { count, rows } = await Club.findAndCountAll({
     attributes: [
@@ -30,7 +39,7 @@ export const getClubs = async (req, res) => {
       ["lastYearActiveMembers", "members"],
     ],
     offset: offset,
-    limit: pageSize,
+    limit: PAGE_SIZE,
   });
 
   return res.status(200).json({
@@ -42,9 +51,16 @@ export const getClubs = async (req, res) => {
   });
 };
 
+/**
+ * getAppliedClubs controller.
+ *
+ * Retrieves user-club relation records from store,
+ * then retrieves each club record using the club_id
+ * field in each relation record.
+ */
 export const getAppliedClubs = async (req, res) => {
   const page = req.params.page;
-  const offset = pageSize * page;
+  const offset = PAGE_SIZE * page;
   const userId = req.query.userId;
 
   const { count, rows } = await UserClub.findAndCountAll({
@@ -52,7 +68,7 @@ export const getAppliedClubs = async (req, res) => {
       user_id: userId,
     },
     offset: offset,
-    limit: pageSize,
+    limit: PAGE_SIZE,
   });
 
   const appliedClubs = [];
@@ -81,6 +97,11 @@ export const getAppliedClubs = async (req, res) => {
   });
 };
 
+/**
+ * checkAppliedClubs controller.
+ *
+ * Checks if club is applied by the user.
+ */
 export const checkAppliedClub = async (req, res) => {
   const clubId = req.params.id;
   const userId = req.query.userId;
@@ -98,6 +119,12 @@ export const checkAppliedClub = async (req, res) => {
   });
 };
 
+/**
+ * applyClubs controller.
+ *
+ * Creates a user-club relation record to
+ * add this club under the user's applied clubs.
+ */
 export const applyClub = async (req, res) => {
   const userId = req.body.userId;
   const clubId = req.body.clubId;
