@@ -90,6 +90,12 @@ export const login = async (req, res) => {
     },
   });
 
+  if (user === null) {
+    return res.status(400).json({
+      msg: "user does not exist",
+    });
+  }
+
   const userWithoutPassword = {
     id: user.id,
     email: user.email,
@@ -99,7 +105,7 @@ export const login = async (req, res) => {
   const isValid = await validateUser(password, user.password);
 
   if (!isValid) {
-    return res.status(401).json({
+    return res.status(400).json({
       msg: "incorrect email or password",
     });
   }
